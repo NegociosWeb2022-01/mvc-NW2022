@@ -80,7 +80,8 @@ class Usuarios extends Table
         $useractcod,
         $usertipo
     ) {
-
+       
+       
         $sqlstr = "INSERT INTO `usuario` (`useremail`, `username`, `userpswd`,
             `userfching`, `userpswdest`, `userpswdexp`, `userest`, `useractcod`,
             `userpswdchg`, `usertipo`)

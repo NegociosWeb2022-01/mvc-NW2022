@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Version 7.2
  * Mnt
@@ -10,7 +11,8 @@
  * @version  CVS:1.0.0
  * @link     http://url.com
  */
- namespace Controllers\Mnt;
+
+namespace Controllers\Mnt;
 
 // ---------------------------------------------------------------
 // Sección de imports
@@ -43,7 +45,7 @@ class Usuario extends PublicController
      *
      * @return void
      */
-    public function run():void
+    public function run(): void
     {
         // code
         $this->init();
@@ -93,10 +95,10 @@ class Usuario extends PublicController
         $this->viewData["showBtn"] = true;
 
         $this->arrModeDesc = array(
-            "INS"=>"Nuevo Usuario",
-            "UPD"=>"Editando %s %s",
-            "DSP"=>"Detalle de %s %s",
-            "DEL"=>"Eliminado %s %s"
+            "INS" => "Nuevo Usuario",
+            "UPD" => "Editando %s %s",
+            "DSP" => "Detalle de %s %s",
+            "DEL" => "Eliminado %s %s"
         );
 
         $this->arrEstados = array(
@@ -117,11 +119,10 @@ class Usuario extends PublicController
             array("value" => "AUD", "text" => "Auditor"),
         );
 
-        
+
         $this->viewData["userestArr"] = $this->arrEstados;
         $this->viewData["usertipoArr"] = $this->arrUsuarioTipo;
         $this->viewData["userpswdestArr"] = $this->arruserpswdest;
-
     }
 
     private function procesarGet()
@@ -146,17 +147,29 @@ class Usuario extends PublicController
     private function procesarPost()
     {
         // Validar la entrada de Datos
-        
+
         //  Todos valor puede y sera usando en contra del sistema
         $hasErrors = false;
         \Utilities\ArrUtils::mergeArrayTo($_POST, $this->viewData);
-        if (isset($_SESSION[$this->name . "crsf_token"])
+        if (
+            isset($_SESSION[$this->name . "crsf_token"])
             && $_SESSION[$this->name . "crsf_token"] !== $this->viewData["crsf_token"]
         ) {
             \Utilities\Site::redirectToWithMsg(
                 "index.php?page=mnt_usuarios2",
                 "ERROR: Algo inesperado sucedió con la petición Intente de nuevo."
             );
+        }
+
+        if (!(Validators::IsValidEmail($this->viewData["useremail"]))) {
+            $this->viewData["error_useremail"][]
+                = "Correo no es válido";
+            $hasErrors = true;
+        }
+        if (!Validators::IsValidPassword($this->viewData["userpswd"])) {
+            $this->viewData["error_userpswd"][]
+                = "Contraseña debe ser almenos 8 caracteres, 1 número, 1 mayúscula, 1 símbolo especial";
+            $hasErrors = true;
         }
 
         if (Validators::IsEmpty($this->viewData["useremail"])) {
@@ -185,62 +198,64 @@ class Usuario extends PublicController
                 = "Campo requerido";
             $hasErrors = true;
         }
-       
+
+
+
 
         error_log(json_encode($this->viewData));
         // Ahora procedemos con las modificaciones al registro
         if (!$hasErrors) {
             $result = null;
-            switch($this->viewData["mode"]) {
-            case 'INS':
-                $result = Usuarios::insert(
-                    $this->viewData["useremail"],
-                    $this->viewData["username"],
-                    $this->viewData["userpswd"],
-                    $this->viewData["userpswdest"],
-                    $this->viewData["userpswdexp"],
-                    $this->viewData["userest"],
-                    $this->viewData["useractcod"],
-                    $this->viewData["usertipo"]
-                );
-                if ($result) {
-                    \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_usuarios2",
-                        "Usuario Actualizado Satisfactoriamente"
+            switch ($this->viewData["mode"]) {
+                case 'INS':
+                    $result = Usuarios::insert(
+                        $this->viewData["useremail"],
+                        $this->viewData["username"],
+                        $this->viewData["userpswd"],
+                        $this->viewData["userpswdest"],
+                        $this->viewData["userpswdexp"],
+                        $this->viewData["userest"],
+                        $this->viewData["useractcod"],
+                        $this->viewData["usertipo"]
                     );
-                }
-                   
-                break;
-            case 'UPD':
-                $result = Usuarios::update(
-                    $this->viewData["useremail"],
-                    $this->viewData["username"],
-                    $this->viewData["userpswd"],
-                    $this->viewData["userpswdest"],
-                    $this->viewData["userpswdexp"],
-                    $this->viewData["userest"],
-                    $this->viewData["useractcod"],
-                    $this->viewData["usertipo"],
-                    intval($this->viewData["usercod"])
-                );
-                if ($result) {
-                    \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_usuarios2",
-                        "Usuario Actualizado Satisfactoriamente"
+                    if ($result) {
+                        \Utilities\Site::redirectToWithMsg(
+                            "index.php?page=mnt_usuarios2",
+                            "Usuario Actualizado Satisfactoriamente"
+                        );
+                    }
+
+                    break;
+                case 'UPD':
+                    $result = Usuarios::update(
+                        $this->viewData["useremail"],
+                        $this->viewData["username"],
+                        $this->viewData["userpswd"],
+                        $this->viewData["userpswdest"],
+                        $this->viewData["userpswdexp"],
+                        $this->viewData["userest"],
+                        $this->viewData["useractcod"],
+                        $this->viewData["usertipo"],
+                        intval($this->viewData["usercod"])
                     );
-                }
-                break;
-            case 'DEL':
-                $result = Usuarios::delete(
-                    intval($this->viewData["usercod"])
-                );
-                if ($result) {
-                    \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_usuarios2",
-                        "Usuario Eliminado Satisfactoriamente"
+                    if ($result) {
+                        \Utilities\Site::redirectToWithMsg(
+                            "index.php?page=mnt_usuarios2",
+                            "Usuario Actualizado Satisfactoriamente"
+                        );
+                    }
+                    break;
+                case 'DEL':
+                    $result = Usuarios::delete(
+                        intval($this->viewData["usercod"])
                     );
-                }
-                break;
+                    if ($result) {
+                        \Utilities\Site::redirectToWithMsg(
+                            "index.php?page=mnt_usuarios2",
+                            "Usuario Eliminado Satisfactoriamente"
+                        );
+                    }
+                    break;
             }
         }
     }
@@ -258,7 +273,7 @@ class Usuario extends PublicController
                 $this->viewData["usercod"],
                 $this->viewData["username"]
             );
-            
+
             $this->viewData["userestArr"]
                 = \Utilities\ArrUtils::objectArrToOptionsArray(
                     $this->arrEstados,
@@ -268,7 +283,7 @@ class Usuario extends PublicController
                     $this->viewData["userest"]
                 );
 
-                $this->viewData["usertipoArr"]
+            $this->viewData["usertipoArr"]
                 = \Utilities\ArrUtils::objectArrToOptionsArray(
                     $this->arrUsuarioTipo,
                     'value',
@@ -277,7 +292,7 @@ class Usuario extends PublicController
                     $this->viewData["usertipo"]
                 );
 
-                $this->viewData["userpswdestArr"]
+            $this->viewData["userpswdestArr"]
                 = \Utilities\ArrUtils::objectArrToOptionsArray(
                     $this->arruserpswdest,
                     'value',
@@ -285,7 +300,7 @@ class Usuario extends PublicController
                     'value',
                     $this->viewData["userpswdest"]
                 );
-            
+
             if ($this->viewData["mode"] === "DSP") {
                 $this->viewData["readonly"] = true;
                 $this->viewData["showBtn"] = false;
