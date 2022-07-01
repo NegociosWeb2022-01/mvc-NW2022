@@ -18,7 +18,7 @@
 use Controllers\PublicController;
 use Views\Renderer;
 use Utilities\Validators;
-use Dao\Mnt\Usuarios;
+use Dao\Mnt\Roles;
 use Exception;
 
 /**
@@ -30,13 +30,11 @@ use Exception;
  * @license  MIT http://
  * @link     http://
  */
-class Usuario extends PublicController
+class Rol extends PublicController
 {
     private $viewData = array();
     private $arrModeDesc = array();
-    private $arrUsuarioTipo = array();
     private $arrEstados = array();
-    private $arruserpswdest = array();
 
     /**
      * Runs the controller
@@ -57,7 +55,7 @@ class Usuario extends PublicController
         }
         // Ejecutar Siempre
         $this->processView();
-        Renderer::render('mnt/usuario', $this->viewData);
+        Renderer::render('mnt/rol', $this->viewData);
     }
 
     private function init()
@@ -66,34 +64,18 @@ class Usuario extends PublicController
         $this->viewData["mode"] = "";
         $this->viewData["mode_desc"] = "";
         $this->viewData["crsf_token"] = "";
-        $this->viewData["usercod"] = "";
-        $this->viewData["useremail"] = "";
-        $this->viewData["error_useremail"] = array();
-        $this->viewData["username"] = "";
-        $this->viewData["error_username"] = array();
-        $this->viewData["userpswd"] = "";
-        $this->viewData["error_userpswd"] = array();
-        $this->viewData["userfching"] = "";
-        $this->viewData["error_userfching"] = array();
-        $this->viewData["userpswdest"] = "";
-        $this->viewData["error_userpswdest"] = array();
-        $this->viewData["userpswdexp"] = "";
-        $this->viewData["userpswdestArr"] = array();
-        $this->viewData["error_userpswdexp"] = array();
-        $this->viewData["useractcod"] = "";
-        $this->viewData["error_useractcod"] = array();
-        $this->viewData["userpswdchg"] = "";
-        $this->viewData["error_userpswdchg"] = array();
-        $this->viewData["userest"] = "";
-        $this->viewData["userestArr"] = array();
-        $this->viewData["usertipo"] = "";
-        $this->viewData["usertipoArr"] = array();
+        $this->viewData["rolescod"] = "";
+        $this->viewData["rolesdsc"] = "";
+        $this->viewData["error_rolesdsc"] = array();
+        $this->viewData["rolesest"] = "";
+        $this->viewData["error_rolesest"] = array();
+        $this->viewData["rolesestArr"] = array();
         $this->viewData["btnEnviarText"] = "Guardar";
         $this->viewData["readonly"] = false;
         $this->viewData["showBtn"] = true;
 
         $this->arrModeDesc = array(
-            "INS"=>"Nuevo Usuario",
+            "INS"=>"Nuevo Roles",
             "UPD"=>"Editando %s %s",
             "DSP"=>"Detalle de %s %s",
             "DEL"=>"Eliminado %s %s"
@@ -102,25 +84,9 @@ class Usuario extends PublicController
         $this->arrEstados = array(
             array("value" => "ACT", "text" => "Activo"),
             array("value" => "INA", "text" => "Inactivo"),
-            array("value" => "BLQ", "text" => "Bloqueado"),
-            array("value" => "SUS", "text" => "Suspendido"),
         );
-
-        $this->arruserpswdest = array(
-            array("value" => "ACT", "text" => "Activo"),
-            array("value" => "INA", "text" => "Inactivo"),
-        );
-
-        $this->arrUsuarioTipo = array(
-            array("value" => "PBL", "text" => "Publico"),
-            array("value" => "ADM", "text" => "Administrador"),
-            array("value" => "AUD", "text" => "Auditor"),
-        );
-
         
-        $this->viewData["userestArr"] = $this->arrEstados;
-        $this->viewData["usertipoArr"] = $this->arrUsuarioTipo;
-        $this->viewData["userpswdestArr"] = $this->arruserpswdest;
+        $this->viewData["rolesestArr"] = $this->arrEstados;
 
     }
 
@@ -129,20 +95,21 @@ class Usuario extends PublicController
         if (isset($_GET["mode"])) {
             $this->viewData["mode"] = $_GET["mode"];
             if (!isset($this->arrModeDesc[$this->viewData["mode"]])) {
-                error_log('Error: (Usuarios) Mode solicitado no existe.');
+                error_log('Error: (roles) Mode solicitado no existe.');
                 \Utilities\Site::redirectToWithMsg(
-                    "index.php?page=mnt_usuarios2",
+                    "index.php?page=mnt_roles",
                     "No se puede procesar su solicitud!"
                 );
             }
         }
         if ($this->viewData["mode"] !== "INS" && isset($_GET["id"])) {
-            $this->viewData["usercod"] = intval($_GET["id"]);
-            $tmpUsuarios = Usuarios::getById($this->viewData["usercod"]);
-            error_log(json_encode($tmpUsuarios));
-            \Utilities\ArrUtils::mergeFullArrayTo($tmpUsuarios, $this->viewData);
+            $this->viewData["rolescod"] = $_GET["id"];
+            $tmpRoles = Roles::getById($this->viewData["rolescod"]);
+            error_log(json_encode($tmpRoles));
+            \Utilities\ArrUtils::mergeFullArrayTo($tmpRoles, $this->viewData);
         }
     }
+
     private function procesarPost()
     {
         // Validar la entrada de Datos
@@ -154,7 +121,7 @@ class Usuario extends PublicController
             && $_SESSION[$this->name . "crsf_token"] !== $this->viewData["crsf_token"]
         ) {
             \Utilities\Site::redirectToWithMsg(
-                "index.php?page=mnt_usuarios2",
+                "index.php?page=mnt_roles",
                 "ERROR: Algo inesperado sucedió con la petición Intente de nuevo."
             );
         }
@@ -167,51 +134,40 @@ class Usuario extends PublicController
             $result = null;
             switch($this->viewData["mode"]) {
             case 'INS':
-                $result = Usuarios::insert(
-                    $this->viewData["useremail"],
-                    $this->viewData["username"],
-                    $this->viewData["userpswd"],
-                    $this->viewData["userpswdest"],
-                    $this->viewData["userpswdexp"],
-                    $this->viewData["userest"],
-                    $this->viewData["useractcod"],
-                    $this->viewData["usertipo"]
+                $result = Roles::insert(
+                    $this->viewData["rolescod"],
+                    $this->viewData["rolesdsc"],
+                    $this->viewData["rolesest"]
                 );
                 if ($result) {
                     \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_usuarios2",
-                        "Usuario Actualizado Satisfactoriamente"
+                        "index.php?page=mnt_roles",
+                        "Roles Insertado Satisfactoriamente"
                     );
                 }
                    
                 break;
             case 'UPD':
-                $result = Usuarios::update(
-                    $this->viewData["useremail"],
-                    $this->viewData["username"],
-                    $this->viewData["userpswd"],
-                    $this->viewData["userpswdest"],
-                    $this->viewData["userpswdexp"],
-                    $this->viewData["userest"],
-                    $this->viewData["useractcod"],
-                    $this->viewData["usertipo"],
-                    intval($this->viewData["usercod"])
+                $result = Roles::update(
+                    $this->viewData["rolesdsc"],
+                    $this->viewData["rolesest"],
+                    $this->viewData["rolescod"]
                 );
                 if ($result) {
                     \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_usuarios2",
-                        "Usuario Actualizado Satisfactoriamente"
+                        "index.php?page=mnt_roles",
+                        "Roles Actualizado Satisfactoriamente"
                     );
                 }
                 break;
             case 'DEL':
-                $result = Usuarios::delete(
-                    intval($this->viewData["usercod"])
+                $result = Roles::delete(
+                    $this->viewData["rolescod"]
                 );
                 if ($result) {
                     \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_usuarios2",
-                        "Usuario Eliminado Satisfactoriamente"
+                        "index.php?page=mnt_roles",
+                        "Roles Eliminado Satisfactoriamente"
                     );
                 }
                 break;
@@ -229,36 +185,20 @@ class Usuario extends PublicController
         } else {
             $this->viewData["mode_desc"]  = sprintf(
                 $this->arrModeDesc[$this->viewData["mode"]],
-                $this->viewData["usercod"],
-                $this->viewData["username"]
+                $this->viewData["rolescod"],
+                $this->viewData["rolesdsc"]
             );
             
-            $this->viewData["userestArr"]
+            $this->viewData["rolesestArr"]
                 = \Utilities\ArrUtils::objectArrToOptionsArray(
                     $this->arrEstados,
                     'value',
                     'text',
                     'value',
-                    $this->viewData["userest"]
+                    $this->viewData["rolesest"]
                 );
 
-                $this->viewData["usertipoArr"]
-                = \Utilities\ArrUtils::objectArrToOptionsArray(
-                    $this->arrUsuarioTipo,
-                    'value',
-                    'text',
-                    'value',
-                    $this->viewData["usertipo"]
-                );
-
-                $this->viewData["userpswdestArr"]
-                = \Utilities\ArrUtils::objectArrToOptionsArray(
-                    $this->arruserpswdest,
-                    'value',
-                    'text',
-                    'value',
-                    $this->viewData["userpswdest"]
-                );
+               
             
             if ($this->viewData["mode"] === "DSP") {
                 $this->viewData["readonly"] = true;

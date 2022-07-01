@@ -49,8 +49,8 @@
 
     <fieldset>
 
-      <label for="userpswdexp">User Pswexp:</label>
-      <input {{if readonly}}readonly{{endif readonly}} type="text" id="userpswdexp" name="userpswdexp" placeholder="userpswdexp" value="{{userpswdexp}}" />
+      <label for="userpswdexp">Expiracion Contraseña:</label>
+      <input {{if readonly}}readonly{{endif readonly}} type="text" id="userpswdexp" name="userpswdexp" placeholder="2022-07-02" value="{{userpswdexp}}" />
       {{if error_userpswdexp}}
         {{foreach error_userpswdexp}}
           <div class="error">{{this}}</div>
@@ -58,6 +58,8 @@
       {{endif error_userpswdexp}}
     </fieldset>
 
+     
+   
      <fieldset>
       <label for="userest">Estado</label>
       <select name="userest" id="userest" {{if readonly}}readonly disabled{{endif readonly}}>
@@ -66,6 +68,19 @@
         {{endfor userestArr}}
       </select>
     </fieldset>
+  
+      <fieldset>
+
+      <label for="useractcod">Codigo usuario:</label>
+      <input {{if readonly}}readonly{{endif readonly}} type="text" id="useractcod" name="useractcod" placeholder="59ca06888d06123f79f99d028a773" value="{{useractcod}}" />
+      {{if error_useractcod}}
+        {{foreach error_useractcod}}
+          <div class="error">{{this}}</div>
+        {{endfor error_useractcod}}
+      {{endif error_useractcod}}
+    </fieldset>
+    
+    
      <fieldset>
       <label for="usertipo">Tipo</label>
       <select name="usertipo" id="usertipo" {{if readonly}}readonly disabled{{endif readonly}}>
@@ -75,9 +90,8 @@
       </select>
     </fieldset>
 
- 
-  
 
+  <fieldset>
     <fieldset>
       {{if showBtn}}
         <button type="submit" name="btnEnviar">{{btnEnviarText}}</button>

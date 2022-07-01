@@ -15,6 +15,7 @@
  */
 
 namespace Dao\Mnt;
+
 use Exception;
 
 use Dao\Table;
@@ -74,51 +75,30 @@ class Usuarios extends Table
         $username,
         $userpswd,
         $userpswdest,
+        $userpswdexp,
         $userest,
+        $useractcod,
         $usertipo
     ) {
 
-        
-        //Tratamiento de la Contraseña
-        $hashedPassword = self::_hashPassword($userpswd);
-        $pswpswdexp = date('Y-m-d', time() + 7776000);
-        $actcod= hash("sha256", $useremail.time());
-
-    
-
         $sqlstr = "INSERT INTO `usuario` (`useremail`, `username`, `userpswd`,
-        `userfching`, `userpswdest`, `userpswdexp`, `userest`, `useractcod`,
-        `userpswdchg`, `usertipo`)
-        VALUES
-        ( :useremail, :username, :userpswd,
-        now(), :userpswdest, :userpswdexp, :userest, :useractcod,
-        now(), :usertipo);";
-         $sqlParams = array(
+            `userfching`, `userpswdest`, `userpswdexp`, `userest`, `useractcod`,
+            `userpswdchg`, `usertipo`)
+            VALUES
+            ( :useremail, :username, :userpswd,
+            now(), :userpswdest, :userpswdexp, :userest, :useractcod,
+            now(), :usertipo);";
+        $sqlParams = array(
             "useremail" => $useremail,
             "username" => $username,
-            "userpswd" => $hashedPassword,
+            "userpswd" => $userpswd,
             "userpswdest" => $userpswdest,
-            "userpswdexp" => $pswpswdexp,
+            "userpswdexp" => $userpswdexp,
             "userest" => $userest,
-            "useractcod" => $actcod,
-            "usertipo" => $usertipo,
+            "useractcod" => $useractcod,
+            "usertipo" => $usertipo
         );
-       
         return self::executeNonQuery($sqlstr, $sqlParams);
-    }
-
-    static private function _saltPassword($userpswd)
-    {
-        return hash_hmac(
-            "sha256",
-            $userpswd,
-            \Utilities\Context::getContextByKey("PWD_HASH")
-        );
-    }
-
-    static private function _hashPassword($userpswd)
-    {
-        return password_hash(self::_saltPassword($userpswd), PASSWORD_ALGORITHM);
     }
 
 
@@ -127,32 +107,27 @@ class Usuarios extends Table
         $useremail,
         $username,
         $userpswd,
-        $userfching,
         $userpswdest,
         $userpswdexp,
         $userest,
         $useractcod,
-        $userpswdchg,
         $usertipo,
         $usercod
 
     ) {
         $sqlstr = "UPDATE `usuario` set
 `useremail`=:useremail, `username`=:username,
-`userpswd`=:userpswd, `userfching`=:userfching, `userpswdest`=:userpswdest,
-`userpswdexp`=:userpswdexp, `userest`=:userest, `useractcod`=:useractcod ,
-`userpswdchg`=:userpswdchg, `usertipo`=:usertipo
+`userpswd`=:userpswd,  `userpswdest`=:userpswdest,
+`userpswdexp`=:userpswdexp, `userest`=:userest, `useractcod`=:useractcod , `usertipo`=:usertipo
  where `usercod` = :usercod;";
         $sqlParams = array(
             "useremail" => $useremail,
             "username" => $username,
             "userpswd" => $userpswd,
-            "userfching" => $userfching,
             "userpswdest" => $userpswdest,
             "userpswdexp" => $userpswdexp,
             "userest" => $userest,
             "useractcod" => $useractcod,
-            "userpswdchg" => $userpswdchg,
             "usertipo" => $usertipo,
             "usercod" => $usercod
         );
