@@ -34,6 +34,7 @@
          <li><a href="index.php?page=Mnt_Pianos"><i class="fas fa-user-plus"></i>&nbsp;Pianos</a></li>
          <li><a href="index.php?page=Mnt_Usuarios2"><i class="fas fa-user-plus"></i>&nbsp;Usuarios</a></li>
          <li><a href="index.php?page=Mnt_Roles"><i class="fas fa-user-plus"></i>&nbsp;Roles</a></li>
+         <li><a href="index.php?page=Mnt_Funciones"><i class="fas fa-user-plus"></i>&nbsp;Funciones</a></li>
       </ul>
     </nav>
   </header>

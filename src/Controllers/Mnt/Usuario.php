@@ -159,6 +159,32 @@ class Usuario extends PublicController
             );
         }
 
+        if (Validators::IsEmpty($this->viewData["useremail"])) {
+            $this->viewData["error_useremail"][]
+                = "El correo electronico es requerido";
+            $hasErrors = true;
+        }
+
+        if (Validators::IsEmpty($this->viewData["username"])) {
+            $this->viewData["error_username"][]
+                = "El nombre de usuario es requerida";
+            $hasErrors = true;
+        }
+        if (Validators::IsEmpty($this->viewData["userpswd"])) {
+            $this->viewData["error_userpswd"][]
+                = "La contraseña de usuario es requerida";
+            $hasErrors = true;
+        }
+        if (Validators::IsEmpty($this->viewData["userpswdexp"])) {
+            $this->viewData["error_userpswdexp"][]
+                = "Campo requerido";
+            $hasErrors = true;
+        }
+        if (Validators::IsEmpty($this->viewData["useractcod"])) {
+            $this->viewData["error_useractcod"][]
+                = "Campo requerido";
+            $hasErrors = true;
+        }
        
 
         error_log(json_encode($this->viewData));

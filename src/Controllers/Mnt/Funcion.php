@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP Version 7.2
  * Mnt
@@ -10,7 +11,8 @@
  * @version  CVS:1.0.0
  * @link     http://url.com
  */
- namespace Controllers\Mnt;
+
+namespace Controllers\Mnt;
 
 // ---------------------------------------------------------------
 // Sección de imports
@@ -18,8 +20,7 @@
 use Controllers\PublicController;
 use Views\Renderer;
 use Utilities\Validators;
-use Dao\Mnt\Roles;
-use Exception;
+use Dao\Mnt\Funciones;
 
 /**
  * Producto
@@ -30,18 +31,19 @@ use Exception;
  * @license  MIT http://
  * @link     http://
  */
-class Rol extends PublicController
+class Funcion extends PublicController
 {
     private $viewData = array();
     private $arrModeDesc = array();
     private $arrEstados = array();
+    private $arrTipos = array();
 
     /**
      * Runs the controller
      *
      * @return void
      */
-    public function run():void
+    public function run(): void
     {
         // code
         $this->init();
@@ -55,7 +57,7 @@ class Rol extends PublicController
         }
         // Ejecutar Siempre
         $this->processView();
-        Renderer::render('mnt/rol', $this->viewData);
+        Renderer::render('mnt/funcion', $this->viewData);
     }
 
     private function init()
@@ -64,30 +66,36 @@ class Rol extends PublicController
         $this->viewData["mode"] = "";
         $this->viewData["mode_desc"] = "";
         $this->viewData["crsf_token"] = "";
-        $this->viewData["rolescod"] = "";
-        $this->viewData["rolesdsc"] = "";
-        $this->viewData["error_rolesdsc"] = array();
-        $this->viewData["rolesest"] = "";
-        $this->viewData["error_rolesest"] = array();
-        $this->viewData["rolesestArr"] = array();
+        $this->viewData["fncod"] = "";
+        $this->viewData["fndsc"] = "";
+        $this->viewData["error_fndsc"] = array();
+        $this->viewData["fnest"] = "";
+        $this->viewData["fnestArr"] = array();
+        $this->viewData["fntyp"] = "";
+        $this->viewData["fntypArr"] = array();
         $this->viewData["btnEnviarText"] = "Guardar";
         $this->viewData["readonly"] = false;
         $this->viewData["showBtn"] = true;
 
         $this->arrModeDesc = array(
-            "INS"=>"Nuevo Roles",
-            "UPD"=>"Editando %s %s",
-            "DSP"=>"Detalle de %s %s",
-            "DEL"=>"Eliminado %s %s"
+            "INS" => "Nuevo Funcion",
+            "UPD" => "Editando %s %s",
+            "DSP" => "Detalle de %s %s",
+            "DEL" => "Eliminado %s %s"
         );
 
         $this->arrEstados = array(
             array("value" => "ACT", "text" => "Activo"),
             array("value" => "INA", "text" => "Inactivo"),
         );
-        
-        $this->viewData["rolesestArr"] = $this->arrEstados;
 
+        $this->arrTipos = array(
+            array("value" => "CTR", "text" => "CTR"),
+        );
+
+
+        $this->viewData["fnestArr"] = $this->arrEstados;
+        $this->viewData["fntypArr"] = $this->arrTipos;
     }
 
     private function procesarGet()
@@ -95,98 +103,97 @@ class Rol extends PublicController
         if (isset($_GET["mode"])) {
             $this->viewData["mode"] = $_GET["mode"];
             if (!isset($this->arrModeDesc[$this->viewData["mode"]])) {
-                error_log('Error: (roles) Mode solicitado no existe.');
+                error_log('Error: (Funcion) Mode solicitado no existe.');
                 \Utilities\Site::redirectToWithMsg(
-                    "index.php?page=mnt_roles",
+                    "index.php?page=mnt_funciones",
                     "No se puede procesar su solicitud!"
                 );
             }
         }
         if ($this->viewData["mode"] !== "INS" && isset($_GET["id"])) {
-            $this->viewData["rolescod"] = $_GET["id"];
-            $tmpRoles = Roles::getById($this->viewData["rolescod"]);
-            error_log(json_encode($tmpRoles));
-            \Utilities\ArrUtils::mergeFullArrayTo($tmpRoles, $this->viewData);
+            $this->viewData["fncod"] = $_GET["id"];
+            $tmpFunciones = Funciones::getById($this->viewData["fncod"]);
+            error_log(json_encode($tmpFunciones));
+            \Utilities\ArrUtils::mergeFullArrayTo($tmpFunciones, $this->viewData);
         }
     }
-
     private function procesarPost()
     {
         // Validar la entrada de Datos
-        
         //  Todos valor puede y sera usando en contra del sistema
         $hasErrors = false;
         \Utilities\ArrUtils::mergeArrayTo($_POST, $this->viewData);
-        if (isset($_SESSION[$this->name . "crsf_token"])
+        if (
+            isset($_SESSION[$this->name . "crsf_token"])
             && $_SESSION[$this->name . "crsf_token"] !== $this->viewData["crsf_token"]
         ) {
             \Utilities\Site::redirectToWithMsg(
-                "index.php?page=mnt_roles",
+                "index.php?page=mnt_funciones",
                 "ERROR: Algo inesperado sucedió con la petición Intente de nuevo."
             );
         }
 
-        if (Validators::IsEmpty($this->viewData["rolescod"])) {
-            $this->viewData["error_rolescod"][]
+
+        if (Validators::IsEmpty($this->viewData["fncod"])) {
+            $this->viewData["error_fncod"][]
                 = "El codigo es requerido";
             $hasErrors = true;
         }
 
-        if (Validators::IsEmpty($this->viewData["rolesdsc"])) {
-            $this->viewData["error_rolesdsc"][]
+        if (Validators::IsEmpty($this->viewData["fndsc"])) {
+            $this->viewData["error_fndsc"][]
                 = "La descripcion es requerida";
             $hasErrors = true;
         }
-       
 
+       
         error_log(json_encode($this->viewData));
         // Ahora procedemos con las modificaciones al registro
         if (!$hasErrors) {
             $result = null;
-            switch($this->viewData["mode"]) {
-            case 'INS':
-                $result = Roles::insert(
-                    $this->viewData["rolescod"],
-                    $this->viewData["rolesdsc"],
-                    $this->viewData["rolesest"]
-                );
-                if ($result) {
-                    \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_roles",
-                        "Roles Insertado Satisfactoriamente"
+            switch ($this->viewData["mode"]) {
+                case 'INS':
+                    $result = Funciones::insert(
+                        $this->viewData["fncod"],
+                        $this->viewData["fndsc"],
+                        $this->viewData["fnest"],
+                        $this->viewData["fntyp"]
                     );
-                }
-                   
-                break;
-            case 'UPD':
-                $result = Roles::update(
-                    $this->viewData["rolesdsc"],
-                    $this->viewData["rolesest"],
-                    $this->viewData["rolescod"]
-                );
-                if ($result) {
-                    \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_roles",
-                        "Roles Actualizado Satisfactoriamente"
+                    if ($result) {
+                        \Utilities\Site::redirectToWithMsg(
+                            "index.php?page=mnt_funciones",
+                            "Funcion Guardada Satisfactoriamente!"
+                        );
+                    }
+                    break;
+                case 'UPD':
+                    $result = Funciones::update(
+                        $this->viewData["fndsc"],
+                        $this->viewData["fnest"],
+                        $this->viewData["fntyp"],
+                        $this->viewData["fncod"],
                     );
-                }
-                break;
-            case 'DEL':
-                $result = Roles::delete(
-                    $this->viewData["rolescod"]
-                );
-                if ($result) {
-                    \Utilities\Site::redirectToWithMsg(
-                        "index.php?page=mnt_roles",
-                        "Roles Eliminado Satisfactoriamente"
+                    if ($result) {
+                        \Utilities\Site::redirectToWithMsg(
+                            "index.php?page=mnt_funciones",
+                            "Funcion Actualizada Satisfactoriamente"
+                        );
+                    }
+                    break;
+                case 'DEL':
+                    $result = Funciones::delete(
+                        $this->viewData["fncod"]
                     );
-                }
-                break;
+                    if ($result) {
+                        \Utilities\Site::redirectToWithMsg(
+                            "index.php?page=mnt_funciones",
+                            "Funcion Eliminada Satisfactoriamente"
+                        );
+                    }
+                    break;
             }
         }
     }
-
-
 
     private function processView()
     {
@@ -196,21 +203,27 @@ class Rol extends PublicController
         } else {
             $this->viewData["mode_desc"]  = sprintf(
                 $this->arrModeDesc[$this->viewData["mode"]],
-                $this->viewData["rolescod"],
-                $this->viewData["rolesdsc"]
+                $this->viewData["fncod"],
+                $this->viewData["fndsc"]
             );
-            
-            $this->viewData["rolesestArr"]
+
+            $this->viewData["fnestArr"]
                 = \Utilities\ArrUtils::objectArrToOptionsArray(
                     $this->arrEstados,
                     'value',
                     'text',
                     'value',
-                    $this->viewData["rolesest"]
+                    $this->viewData["fnest"]
                 );
 
-               
-            
+            $this->viewData["fntypArr"]
+                = \Utilities\ArrUtils::objectArrToOptionsArray(
+                    $this->arrTipos,
+                    'value',
+                    'text',
+                    'value',
+                    $this->viewData["fntyp"]
+                );
             if ($this->viewData["mode"] === "DSP") {
                 $this->viewData["readonly"] = true;
                 $this->viewData["showBtn"] = false;
